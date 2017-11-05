@@ -1,14 +1,15 @@
-let trieDS = require('./trie.js');
+require('./trie.js');
 let fs = require("file-system");
 let reader = require("read-file");
 let readline_sync = require("readline-sync");
 let readline = require("linebyline");
 const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat";
+let textTrie = new Trie;
 
 // method to bootstrap the app
 let init = function () {
     getSearchText();
-    //getCompanyNames();
+    getCompanyNames();
 };
 
 let getSearchText = function () {
@@ -35,8 +36,8 @@ let getCompanyNames = function () {
 
     let readStream = readline(companyFile).on("error", function () {
         console.log("\nFile " + companyFile + " not found! Reading from " + DEFAULT_COMPANY_FILE + "\n");
+        readStream = readline(DEFAULT_COMPANY_FILE);
     });
-    readStream = readline(DEFAULT_COMPANY_FILE);
     readStream.on('line', function (line, lineCount, byteCount) {
         let companyNames = line.split("\t");
         searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
@@ -45,19 +46,19 @@ let getCompanyNames = function () {
 
 let preprocessArticleText = function (text) {
     // TODO: create trie with words in this string
-    let textTrie = new trieDS.Trie();
     let words = text.split(" ");
     for (let word of words) {
-        textTrie.add(word);
+        textTrie.Add(word);
     }
-    console.log(textTrie.print());
+    //console.log(textTrie.Print());
 };
 
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
     for (let i = 0; i < companyNames.length; i++) {
         // find occurrence in trie and increment counter
-        console.log(companyNames[i] + "||");
+        //console.log(companyNames[i] + "||");
+        hitCount += textTrie.FindWord(companyNames[i]);
     }
 
     printResult(companyNames[0], hitCount);
@@ -65,6 +66,7 @@ let searchForOccurrence = function (companyNames) {
 
 let printResult = function(company, hitCount) {
     // TODO: for this company print hit count
+    console.log("\nCompany: " + company + "\tHit Count: " + hitCount);
 };
 
 init();

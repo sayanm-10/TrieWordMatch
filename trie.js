@@ -1,34 +1,45 @@
-/* Trie Data Structure */
-var test_data = "YAYYY";
+/*
+    Node class to represent in Trie data structure
+*/
+class Node {
+    constructor () {
+        this.keys = new Map();
+        this.end = false;
+        this.occurrence = 0;
+    }
 
-let Node = function() {
-	this.keys = new Map();
-	this.end = false;
-	this.setEnd = function() {
-		this.end = true;
-	};
-	this.isEnd = function() {
-		return this.end;
-	};
+    setEnd () {
+        this.end = true;
+        this.occurrence++;
+    };
+    
+    isEnd () {
+        return this.end;
+    };
 };
 
-let Trie = function() {
+/* 
+    Trie data structure for text
+*/
+class Trie {
 
-	this.root = new Node();
+    constructor () {
+        this.root = new Node();
+    }
 
-	this.add = function(input, node = this.root) {
+	Add (input, node) {
+        node = node || this.root;
 		if (input.length == 0) {
 			node.setEnd();
-			return;
 		} else if (!node.keys.has(input[0])) {
 			node.keys.set(input[0], new Node());
-			return this.add(input.substr(1), node.keys.get(input[0]));
+			return this.Add(input.substr(1), node.keys.get(input[0]));
 		} else {
-			return this.add(input.substr(1), node.keys.get(input[0]));
+			return this.Add(input.substr(1), node.keys.get(input[0]));
 		};
 	};
 
-	this.isWord = function(word) {
+	FindWord (word) {
 		let node = this.root;
 		while (word.length > 1) {
 			if (!node.keys.has(word[0])) {
@@ -38,12 +49,13 @@ let Trie = function() {
 				word = word.substr(1);
 			};
 		};
-		return (node.keys.has(word) && node.keys.get(word).isEnd()) ? true : false;
+        //return (node.keys.has(word) && node.keys.get(word).isEnd()) ? true : false;
+        return (node.keys.has(word) && node.keys.get(word).isEnd()) ? node.keys.get(word).occurrence : 0;
 	};
 
-	this.print = function() {
+	Print () {
 		let words = new Array();
-		let search = function(node, string) {
+		let search = function (node, string) {
 			if (node.keys.size != 0) {
 				for (let letter of node.keys.keys()) {
 					search(node.keys.get(letter), string.concat(letter));
@@ -59,7 +71,6 @@ let Trie = function() {
 		search(this.root, new String());
 		return words.length > 0 ? words : mo;
 	};
-
 };
 
-module.exports.Trie = Trie;
+global.Trie = Trie;
