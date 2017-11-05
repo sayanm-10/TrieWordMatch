@@ -22,9 +22,11 @@ let getSearchText = function () {
 
 let getCompanyNames = function () {
     let companyFile = readline_sync.question("\nEnter company file path and name: ");
-    companyFile = companyFile || DEFAULT_COMPANY_FILE;
 
-    let readStream = reader.sync(companyFile, "utf-8");
+    let readStream = readline(companyFile).on("error", function () {
+        console.log("\nFile " + companyFile + " not found! Reading from " + DEFAULT_COMPANY_FILE + "\n");
+    });
+    readStream = readline(DEFAULT_COMPANY_FILE);
     readStream.on('line', function (line, lineCount, byteCount) {
         let companyNames = line.split("\t");
         searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
@@ -37,8 +39,9 @@ let preprocessArticleText = function (text) {
 
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
-    for (company in companyNames) {
+    for (let i = 0; i < companyNames.length; i++) {
         // find occurrence in trie and increment counter
+        console.log(companyNames[i] + "||");
     }
 
     printResult(companyNames[0], hitCount);
