@@ -1,3 +1,4 @@
+require('./trie');
 let fs = require("file-system");
 let reader = require("read-file");
 let readline_sync = require("readline-sync");
@@ -7,17 +8,26 @@ const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat"
 // method to bootstrap the app
 let init = function () {
     getSearchText();
-    getCompanyNames();
+    //getCompanyNames();
 };
 
 let getSearchText = function () {
     let newsArticleFile = readline_sync.question("\nEnter news article file path and name: ");
-    newsArticleFile = newsArticleFile || DEFAULT_ARTICLE_FILE;
+    let readStream;
 
-    let readStream = reader.sync(newsArticleFile, "utf-8");
-    // get rid of speacial characters while preserving whitespace
-    let articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-    preprocessArticleText(articleText); // TODO: process in trie
+    try {
+        readStream = reader.sync(newsArticleFile, "utf-8");
+    }
+    catch (error) {
+        console.log("\nFile " + newsArticleFile + " not found! Reading from " + DEFAULT_ARTICLE_FILE + "\n");
+        readStream = reader.sync(DEFAULT_ARTICLE_FILE, "utf-8");
+    }
+    finally {
+        // get rid of speacial characters while preserving whitespace
+        let articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+        //console.log(articleText);
+        preprocessArticleText(articleText); // TODO: process in trie
+    }
 };
 
 let getCompanyNames = function () {
@@ -35,6 +45,12 @@ let getCompanyNames = function () {
 
 let preprocessArticleText = function (text) {
     // TODO: create trie with words in this string
+    let textTrie = new Trie();
+    let words = text.split(" ");
+    for (word in words) {
+        textTrie.add(word);
+    }
+    console.log(textTrie.print());
 };
 
 let searchForOccurrence = function (companyNames) {

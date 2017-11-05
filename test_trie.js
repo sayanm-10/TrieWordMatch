@@ -1,4 +1,6 @@
-myTrie = new Trie()
+require('./trie');
+
+myTrie = new Trie();
 myTrie.add('ball'); 
 myTrie.add('bat'); 
 myTrie.add('doll'); 

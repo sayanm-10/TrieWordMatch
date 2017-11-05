@@ -36,8 +36,7 @@ let Trie = function() {
 				word = word.substr(1);
 			};
 		};
-		return (node.keys.has(word) && node.keys.get(word).isEnd()) ? 
-      true : false;
+		return (node.keys.has(word) && node.keys.get(word).isEnd()) ? true : false;
 	};
 
 	this.print = function() {
