@@ -1,4 +1,4 @@
-require('./trie');
+let trieDS = require('./trie.js');
 let fs = require("file-system");
 let reader = require("read-file");
 let readline_sync = require("readline-sync");
@@ -45,9 +45,9 @@ let getCompanyNames = function () {
 
 let preprocessArticleText = function (text) {
     // TODO: create trie with words in this string
-    let textTrie = new Trie();
+    let textTrie = new trieDS.Trie();
     let words = text.split(" ");
-    for (word in words) {
+    for (let word of words) {
         textTrie.add(word);
     }
     console.log(textTrie.print());

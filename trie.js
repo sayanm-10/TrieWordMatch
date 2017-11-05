@@ -1,4 +1,6 @@
 /* Trie Data Structure */
+var test_data = "YAYYY";
+
 let Node = function() {
 	this.keys = new Map();
 	this.end = false;
@@ -59,3 +61,5 @@ let Trie = function() {
 	};
 
 };
+
+module.exports.Trie = Trie;
