@@ -4,13 +4,13 @@
 class Node {
     constructor () {
         this.keys = new Map();
-        this.end = false;
         this.occurrence = 0;
+        this.end = false;
     }
 
     setEnd () {
-        this.end = true;
         this.occurrence++;
+        this.end = true;
     };
     
     isEnd () {
@@ -49,7 +49,6 @@ class Trie {
 				word = word.substr(1);
 			};
 		};
-        //return (node.keys.has(word) && node.keys.get(word).isEnd()) ? true : false;
         return (node.keys.has(word) && node.keys.get(word).isEnd()) ? node.keys.get(word).occurrence : 0;
 	};
 
