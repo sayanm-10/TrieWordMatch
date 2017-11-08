@@ -75,9 +75,10 @@ let preprocessArticleText = function (text) {
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
     for (let i = 0; i < companyNames.length; i++) {
+        // normalize company name by removing special characters
+        let normalizedCompanyName = companyNames[i].replace(/(?!\w|\s)./g, '');
         // find occurrence of company in trie and increment counter
-        //console.log(companyNames[i] + "||");
-        hitCount += textTrie.FindWord(companyNames[i]);
+        hitCount += textTrie.FindWord(normalizedCompanyName);
     }
 
     total_hit_count += hitCount;
