@@ -5,7 +5,9 @@ let readline_sync = require("readline-sync");
 let readline = require("linebyline");
 const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat";
 let textTrie = new Trie;
-let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
+let total_hit_count = 0, total_relevance = 0, total_word_count = 0, news_article;
+
+let debug = true;
 
 // method to bootstrap the app
 let init = function () {
@@ -27,31 +29,54 @@ let getSearchText = function () {
     finally {
         // get rid of speacial characters while preserving whitespace
         let articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-        //console.log(articleText);
         preprocessArticleText(articleText); // TODO: process in trie
     }
+
+    // news_article = '';
+    // console.log("\nEnter news article:\n");
+    // readline_sync.promptLoop(function (input) {
+    //     news_article = news_article + " " + input;
+    //     //console.log("Input: " + input);
+    //     return input === ".";
+    // });
+
+    // if (debug) {
+    //     console.log("\nNEWS: \n" + news_article);
+    // }
+
+    // if (news_article.length > 2) {
+    //     // get rid of speacial characters while preserving single whitespace b/w words
+    //     news_article = news_article.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+    //     preprocessArticleText(news_article);
+    // } else {
+    //     getSearchText();
+    // }
 };
 
 let getCompanyNames = function () {
     let companyFile = readline_sync.question("\nEnter company file path and name: ");
 
     let readStream = readline(companyFile).on("error", function () {
-        console.log("\nFile " + companyFile + " not found! Reading from " + DEFAULT_COMPANY_FILE + "\n");
-        readStream = readline(DEFAULT_COMPANY_FILE);
+        console.log("\nFile " + companyFile + " not found!");
+        getCompanyNames(); // keep calling itsellf till user inputs a valid file
+        return;
     });
 
     printResultHeader();
     readStream.on('line', function (line, lineCount, byteCount) {
         let companyNames = line.split("\t");
         searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
+    }).on("end", function () {
+        printTotalCount();
     });
-    //printTotalCount();
+    
 };
 
 let preprocessArticleText = function (text) {
     // TODO: create trie with words in this string
     let words = text.split(" ");
-    total_word_count = words.length;
+    let ignoreWordsCount = text.match(/\b(a|an|the|and|or|but)\b/gi).length;    
+    total_word_count = words.length - ignoreWordsCount;
 
     for (let word of words) {
         textTrie.Add(word);
