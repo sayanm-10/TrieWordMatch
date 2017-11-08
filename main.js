@@ -16,41 +16,24 @@ let init = function () {
 };
 
 let getSearchText = function () {
-    let newsArticleFile = readline_sync.question("\nEnter news article file path and name: ");
-    let readStream;
+    news_article = '';
+    console.log("\nEnter news article:");
+    readline_sync.promptLoop(function (input) {
+        news_article = news_article + " " + input;
+        return input === "."; // exit criteria from std i/p
+    });
 
-    try {
-        readStream = reader.sync(newsArticleFile, "utf-8");
-    }
-    catch (error) {
-        console.log("\nFile " + newsArticleFile + " not found! Reading from " + DEFAULT_ARTICLE_FILE + "\n");
-        readStream = reader.sync(DEFAULT_ARTICLE_FILE, "utf-8");
-    }
-    finally {
-        // get rid of speacial characters while preserving whitespace
-        let articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-        preprocessArticleText(articleText); // TODO: process in trie
+    if (debug) {
+        console.log("\nNEWS: \n" + news_article);
     }
 
-    // news_article = '';
-    // console.log("\nEnter news article:\n");
-    // readline_sync.promptLoop(function (input) {
-    //     news_article = news_article + " " + input;
-    //     //console.log("Input: " + input);
-    //     return input === ".";
-    // });
-
-    // if (debug) {
-    //     console.log("\nNEWS: \n" + news_article);
-    // }
-
-    // if (news_article.length > 2) {
-    //     // get rid of speacial characters while preserving single whitespace b/w words
-    //     news_article = news_article.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-    //     preprocessArticleText(news_article);
-    // } else {
-    //     getSearchText();
-    // }
+    if (news_article.length > 2) {
+        // get rid of speacial characters while preserving single whitespace b/w words
+        news_article = news_article.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+        preprocessArticleText(news_article);
+    } else {
+        getSearchText();
+    }
 };
 
 let getCompanyNames = function () {
@@ -65,7 +48,7 @@ let getCompanyNames = function () {
     printResultHeader();
     readStream.on('line', function (line, lineCount, byteCount) {
         let companyNames = line.split("\t");
-        searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
+        searchForOccurrence(companyNames);
     }).on("end", function () {
         printTotalCount();
     });
@@ -73,11 +56,16 @@ let getCompanyNames = function () {
 };
 
 let preprocessArticleText = function (text) {
-    // TODO: create trie with words in this string
+    let ignoreWordsCount = 0;
     let words = text.split(" ");
-    let ignoreWordsCount = text.match(/\b(a|an|the|and|or|but)\b/gi).length;    
+    let regexMatch = text.match(/\b(a|an|the|and|or|but)\b/gi);
+
+    if (regexMatch) {
+        ignoreWordsCount = regexMatch.length;
+    }
     total_word_count = words.length - ignoreWordsCount;
 
+    // create a trie for these words
     for (let word of words) {
         textTrie.Add(word);
     }
@@ -87,7 +75,7 @@ let preprocessArticleText = function (text) {
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
     for (let i = 0; i < companyNames.length; i++) {
-        // find occurrence in trie and increment counter
+        // find occurrence of company in trie and increment counter
         //console.log(companyNames[i] + "||");
         hitCount += textTrie.FindWord(companyNames[i]);
     }
@@ -97,7 +85,6 @@ let searchForOccurrence = function (companyNames) {
 };
 
 let printResult = function(company, hitCount) {
-    // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
     console.log("\n" + company + "\t\t" + hitCount + "\t\t" + relevance.toFixed(4) + "%");
 };
