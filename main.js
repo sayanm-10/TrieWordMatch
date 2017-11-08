@@ -49,7 +49,6 @@ let getCompanyNames = function () {
 };
 
 let preprocessArticleText = function (text) {
-    // TODO: create trie with words in this string
     let words = text.split(" ");
     total_word_count = words.length;
 
