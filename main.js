@@ -5,7 +5,9 @@ let readline_sync = require("readline-sync");
 let readline = require("linebyline");
 const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat";
 let textTrie = new Trie;
-let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
+let total_hit_count = 0, total_relevance = 0, total_word_count = 0, news_article;
+
+let debug = true;
 
 // method to bootstrap the app
 let init = function () {
@@ -14,21 +16,23 @@ let init = function () {
 };
 
 let getSearchText = function () {
-    let newsArticleFile = readline_sync.question("\nEnter news article file path and name: ");
-    let readStream;
+    news_article = '';
+    console.log("\nEnter news article:");
+    readline_sync.promptLoop(function (input) {
+        news_article = news_article + " " + input;
+        return input === "."; // exit criteria from std i/p
+    });
 
-    try {
-        readStream = reader.sync(newsArticleFile, "utf-8");
+    if (debug) {
+        console.log("\nNEWS: \n" + news_article);
     }
-    catch (error) {
-        console.log("\nFile " + newsArticleFile + " not found! Reading from " + DEFAULT_ARTICLE_FILE + "\n");
-        readStream = reader.sync(DEFAULT_ARTICLE_FILE, "utf-8");
-    }
-    finally {
-        // get rid of speacial characters while preserving whitespace
-        let articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-        //console.log(articleText);
-        preprocessArticleText(articleText); // TODO: process in trie
+
+    if (news_article.length > 2) {
+        // get rid of speacial characters while preserving single whitespace b/w words
+        news_article = news_article.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+        preprocessArticleText(news_article);
+    } else {
+        getSearchText();
     }
 };
 
@@ -36,22 +40,32 @@ let getCompanyNames = function () {
     let companyFile = readline_sync.question("\nEnter company file path and name: ");
 
     let readStream = readline(companyFile).on("error", function () {
-        console.log("\nFile " + companyFile + " not found! Reading from " + DEFAULT_COMPANY_FILE + "\n");
-        readStream = readline(DEFAULT_COMPANY_FILE);
+        console.log("\nFile " + companyFile + " not found!");
+        getCompanyNames(); // keep calling itsellf till user inputs a valid file
+        return;
     });
 
     printResultHeader();
     readStream.on('line', function (line, lineCount, byteCount) {
         let companyNames = line.split("\t");
-        searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
+        searchForOccurrence(companyNames);
+    }).on("end", function () {
+        printTotalCount();
     });
-    //printTotalCount();
+    
 };
 
 let preprocessArticleText = function (text) {
+    let ignoreWordsCount = 0;
     let words = text.split(" ");
-    total_word_count = words.length;
+    let regexMatch = text.match(/\b(a|an|the|and|or|but)\b/gi);
 
+    if (regexMatch) {
+        ignoreWordsCount = regexMatch.length;
+    }
+    total_word_count = words.length - ignoreWordsCount;
+
+    // create a trie for these words
     for (let word of words) {
         textTrie.Add(word);
     }
@@ -61,9 +75,10 @@ let preprocessArticleText = function (text) {
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
     for (let i = 0; i < companyNames.length; i++) {
-        // find occurrence in trie and increment counter
-        //console.log(companyNames[i] + "||");
-        hitCount += textTrie.FindWord(companyNames[i]);
+        // normalize company name by removing special characters
+        let normalizedCompanyName = companyNames[i].replace(/(?!\w|\s)./g, '');
+        // find occurrence of company in trie and increment counter
+        hitCount += textTrie.FindWord(normalizedCompanyName);
     }
 
     total_hit_count += hitCount;
@@ -71,7 +86,6 @@ let searchForOccurrence = function (companyNames) {
 };
 
 let printResult = function(company, hitCount) {
-    // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
     console.log("\n" + company + "\t\t" + hitCount + "\t\t" + relevance.toFixed(4) + "%");
 };
