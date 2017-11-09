@@ -1,3 +1,4 @@
+let use_company_trie = true;
 /*
     Node class to represent in Trie data structure
 */
@@ -12,13 +13,13 @@ class Node {
         this.occurrence++;
         this.end = true;
     };
-    
+
     isEnd () {
         return this.end;
     };
 };
 
-/* 
+/*
     Trie data structure for text
 */
 class Trie {
@@ -40,18 +41,42 @@ class Trie {
 	};
 
 	FindWord (word) {
-		let node = this.root;
-		while (word.length > 1) {
-			if (!node.keys.has(word[0])) {
-				return false;
-			} else {
-				node = node.keys.get(word[0]);
-				word = word.substr(1);
+			let node = this.root;
+			while (word.length > 1) {
+				if (!node.keys.has(word[0])) {
+					return false;
+				} else {
+					node = node.keys.get(word[0]);
+					word = word.substr(1);
+				};
 			};
-		};
-        return (node.keys.has(word) && node.keys.get(word).isEnd()) ? node.keys.get(word).occurrence : 0;
+					// if the last node matches and it is the end of the trie
+	    return (node.keys.has(word) && node.keys.get(word).isEnd()) ? node.keys.get(word).occurrence : 0;
 	};
 
+	SearchString(string){
+		let node = this.root;
+		let entire_string = string;
+		let found_match = false;
+		while (node.keys.has(string[0])) {
+			console.log(node.keys.get(string[0]));
+			if  (node.keys.get(string[0]).isEnd()){
+				string = string.substr(1);
+				found_match = true;
+				console.log('found match');
+				break;
+			} else {
+				console.log('move through trie')
+				node = node.keys.get(string[0]);
+				string = string.substr(1);
+			};
+		};
+		if (found_match){
+			return entire_string[entire_string.length-string.length];
+		}else{
+			return '';
+		}
+	};
 	Print () {
 		let words = new Array();
 		let search = function (node, string) {
@@ -68,7 +93,7 @@ class Trie {
 			};
 		};
 		search(this.root, new String());
-		return words.length > 0 ? words : mo;
+		return words.length > 0 ? words : 0;
 	};
 };
 
