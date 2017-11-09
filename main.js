@@ -15,7 +15,7 @@ let companyHits = {};
 let init = function () {
   if (use_company_trie){
     getCompanyNames();
-    getSearchText();
+    //getSearchText();
   }else{
     getSearchText();
     getCompanyNames();
@@ -62,6 +62,8 @@ let getCompanyNames = function () {
             textTrie.Add(companyNames[i]);
             console.log(textTrie);
           }
+      }).on('end', function() {
+        getSearchText();
       });
     }else{
       printResultHeader();
