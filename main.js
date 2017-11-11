@@ -66,8 +66,8 @@ let getCompanyNames = function () {
             textTrie.Add(companySynonym);
           }
       }).on('end', function() {
-        console.log('Companies added to Trie:');
-        console.log(textTrie.Print());
+        // console.log('Companies added to Trie:');
+        // console.log(textTrie.Print());
         getSearchText();
       });
     }else{
@@ -135,33 +135,38 @@ let processArticleText = function (companyNames) {
 };
 
 let printResults = function(){
-  console.log(companyHits);
-  let longestCompany = Object.keys(companyHits).reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-  printResultHeader(longestCompany);
+  let companyWidth = Object.keys(companyHits).reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
+  companyWidth = companyWidth%2==0?companyWidth:companyWidth+1;
+  let hitCountWidth = String(total_word_count).length >11?String(total_word_count).length:11;
+  let tableWidth = companyWidth + hitCountWidth + 11;
+  printResultHeader(companyWidth,hitCountWidth,tableWidth);
 
   for (company in companyHits){
-    printResult(company,companyHits[company],longestCompany);
+    printResult(company,companyHits[company],companyWidth,hitCountWidth);
   }
-  printTotalCount(longestCompany);
+  printTotalCount(companyWidth,hitCountWidth,tableWidth);
 
 }
-let printResult = function(company, hitCount, width = 15) {
+let printResult = function(company, hitCount, col1Width = 15,col2Width = 10) {
     // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
-    console.log("\n" + company.padEnd(width) + String(hitCount).padStart(9) + "\t" + relevance.toFixed(4).padStart(8) + "%");
+    console.log(company.padEnd(col1Width) + String(hitCount).padStart(col2Width)  + relevance.toFixed(4).padStart(10) + "%");
 };
 
-let printResultHeader = function (width = 15) {
-    console.log("\n\n" + "Company".padEnd(width) + "Hit Count" + "\t" + "Relevance");
-    console.log('---------------------------------------------');
+let printResultHeader = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
+    console.log("\n\n" + "Company".padEnd(col1Width) + "Hit Count".padStart(col2Width)  + "  Relevance");
+    console.log('-'.repeat(totalWidth));
 
 };
 
-let printTotalCount = function (width = 15) {
+let printTotalCount = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
     let total_relevance = total_hit_count / total_word_count;
-    console.log('---------------------------------------------');
-    console.log("\n" + "Total".padEnd(width) + String(total_hit_count).padStart(9)+ "\t"  + total_relevance.toFixed(4).padStart(8) + "%");
-    console.log("\t" + "Total Words    " + + total_word_count);
+    console.log('-'.repeat(totalWidth));
+    console.log("Total".padEnd(col1Width) + String(total_hit_count).padStart(col2Width)  + total_relevance.toFixed(4).padStart(10) + "%");
+    console.log('-'.repeat(totalWidth));
+
+    let totalWordsLength = 18 + String(total_word_count).length;
+    console.log(`Total Words      ${total_word_count}`.padEnd(totalWordsLength+(totalWidth-totalWordsLength)/2).padStart(totalWidth));
 };
 
 init();
