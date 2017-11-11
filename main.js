@@ -62,10 +62,8 @@ let getCompanyNames = function () {
             textTrie.Add(companyNames[i]);
           }
       }).on('end', function() {
-        console.log('Trie:');
-        console.log(textTrie);
-        console.log(companyHits);
-        console.log(companyMap);
+        console.log('Companies added to Trie:');
+        console.log(textTrie.Print());
         getSearchText();
       });
     }else{
@@ -102,31 +100,32 @@ let searchForOccurrence = function (companyNames) {
 };
 
 let processArticleText = function (companyNames) {
-    let hitCount = 0, result = '';
+    let result = '';
     for (let i = 0; i < articleText.length; i++) {
         // find occurrence in trie and increment counter
         //console.log(companyNames[i] + "||");
-        console.log(i);
-        console.log(articleText.substring(i,i+20));
         if (articleText[i]==' '){
-            total_word_count += 1;
+            total_word_count++;
         }else{
             result = textTrie.SearchString(articleText.substring(i));
-            if (result.length>0){
-                hitCount += 1;
+            if (result.length>0 && articleText[i+result.length] ==' '){
+                total_hit_count++;
                 companyHits[companyMap[result]]++;
-                console.log('Positive Result');
-                console.log(result);
-                console.log(companyHits);
+                i= i+result.length-1;
             }
         }
     }
-    console.log('Results of search');
-    console.log(companyHits);
-    console.log(hitCount);
-    console.log(total_word_count);
+    printResults();
 };
 
+let printResults = function(){
+  printResultHeader();
+  for (company in companyHits){
+    printResult(company,companyHits[company]);
+  }
+  printTotalCount();
+
+}
 let printResult = function(company, hitCount) {
     // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
@@ -134,7 +133,7 @@ let printResult = function(company, hitCount) {
 };
 
 let printResultHeader = function () {
-    console.log("\n\n" + "Company" + "\t\t" + "Hit Count" + "\t\t" + "Relevance");
+    console.log("\n\n" + "Company" + "\t\t\t" + "Hit Count" + "\t\t" + "Relevance");
 };
 
 let printTotalCount = function () {
