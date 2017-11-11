@@ -56,10 +56,13 @@ let getCompanyNames = function () {
     if (use_company_trie){
       readStream.on('line', function (line, lineCount, byteCount) {
           let companyNames = line.split("\t");
+          let companySynonym = ''
           companyHits[companyNames[0]]=0;
           for (let i = 0; i<companyNames.length; i++){
-            companyMap[companyNames[i]]=companyNames[0];
-            textTrie.Add(companyNames[i]);
+            // Trim and strip company names of special characters
+            companySynonym = companyNames[i].trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ')
+            companyMap[companySynonym]=companyNames[0];
+            textTrie.Add(companySynonym);
           }
       }).on('end', function() {
         console.log('Companies added to Trie:');
@@ -105,6 +108,8 @@ let processArticleText = function (companyNames) {
         // find occurrence in trie and increment counter
         //console.log(companyNames[i] + "||");
         if (articleText[i]==' '){
+          //TODO You should ignore the following words in the article
+          //(but not the company name) when considering relevance: a, an, the, and, or, but
             total_word_count++;
         }else{
             result = textTrie.SearchString(articleText.substring(i));
