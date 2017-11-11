@@ -11,7 +11,6 @@ let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
 let articleText = '';
 let companyMap = {};
 let companyHits = {};
-let filler_words = ['a','an','and','but','or','the']
 // method to bootstrap the app
 let init = function () {
   if (use_company_trie){
@@ -135,8 +134,11 @@ let processArticleText = function (companyNames) {
 };
 
 let printResults = function(){
-  let companyWidth = Object.keys(companyHits).reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
-  companyWidth = companyWidth%2==0?companyWidth:companyWidth+1;
+  // get the length of the longest string for the first column
+  let companyWidth = Object.keys(companyHits)
+            .reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
+  companyWidth = companyWidth>7?companyWidth:7;
+  // get the length of the longest string for the second column
   let hitCountWidth = String(total_word_count).length >11?String(total_word_count).length:11;
   let tableWidth = companyWidth + hitCountWidth + 11;
   printResultHeader(companyWidth,hitCountWidth,tableWidth);
@@ -148,13 +150,15 @@ let printResults = function(){
 
 }
 let printResult = function(company, hitCount, col1Width = 15,col2Width = 10) {
-    // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
-    console.log(company.padEnd(col1Width) + String(hitCount).padStart(col2Width)  + relevance.toFixed(4).padStart(10) + "%");
+    console.log(company.padEnd(col1Width) +
+        String(hitCount).padStart(col2Width)  +
+        relevance.toFixed(4).padStart(10) + "%");
 };
 
 let printResultHeader = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
-    console.log("\n\n" + "Company".padEnd(col1Width) + "Hit Count".padStart(col2Width)  + "  Relevance");
+    console.log("\n\n" + "Company".padEnd(col1Width) +
+        "Hit Count".padStart(col2Width)  + "  Relevance");
     console.log('-'.repeat(totalWidth));
 
 };
@@ -162,11 +166,15 @@ let printResultHeader = function (col1Width = 15,col2Width = 10, totalWidth = 35
 let printTotalCount = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
     let total_relevance = total_hit_count / total_word_count;
     console.log('-'.repeat(totalWidth));
-    console.log("Total".padEnd(col1Width) + String(total_hit_count).padStart(col2Width)  + total_relevance.toFixed(4).padStart(10) + "%");
+    console.log("Total".padEnd(col1Width) +
+        String(total_hit_count).padStart(col2Width)  +
+        total_relevance.toFixed(4).padStart(10) + "%");
     console.log('-'.repeat(totalWidth));
 
     let totalWordsLength = 18 + String(total_word_count).length;
-    console.log(`Total Words      ${total_word_count}`.padEnd(totalWordsLength+(totalWidth-totalWordsLength)/2).padStart(totalWidth));
+    let endPadding = totalWordsLength+(totalWidth-totalWordsLength)/2
+    console.log(`Total Words      ${total_word_count}`
+        .padEnd(endPadding).padStart(totalWidth));
 };
 
 init();
