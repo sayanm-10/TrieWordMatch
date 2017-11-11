@@ -56,27 +56,21 @@ class Trie {
 
 	SearchString(string){
 		let node = this.root;
-		let entire_string = string;
-		let found_match = false;
+    let match_string = '';
 		while (node.keys.has(string[0])) {
 			console.log(node.keys.get(string[0]));
-			if  (node.keys.get(string[0]).isEnd()){
+      match_string = match_string + string[0];
+			if (node.keys.get(string[0]).isEnd()){
 				string = string.substr(1);
-				found_match = true;
-				console.log('found match');
 				break;
 			} else {
-				console.log('move through trie')
 				node = node.keys.get(string[0]);
 				string = string.substr(1);
 			};
 		};
-		if (found_match){
-			return entire_string[entire_string.length-string.length];
-		}else{
-			return '';
-		}
+		return match_string;
 	};
+  
 	Print () {
 		let words = new Array();
 		let search = function (node, string) {

@@ -60,9 +60,12 @@ let getCompanyNames = function () {
           for (let i = 0; i<companyNames.length; i++){
             companyMap[companyNames[i]]=companyNames[0];
             textTrie.Add(companyNames[i]);
-            console.log(textTrie);
           }
       }).on('end', function() {
+        console.log('Trie:');
+        console.log(textTrie);
+        console.log(companyHits);
+        console.log(companyMap);
         getSearchText();
       });
     }else{
@@ -103,6 +106,8 @@ let processArticleText = function (companyNames) {
     for (let i = 0; i < articleText.length; i++) {
         // find occurrence in trie and increment counter
         //console.log(companyNames[i] + "||");
+        console.log(i);
+        console.log(articleText.substring(i,i+20));
         if (articleText[i]==' '){
             total_word_count += 1;
         }else{
@@ -110,6 +115,7 @@ let processArticleText = function (companyNames) {
             if (result.length>0){
                 hitCount += 1;
                 companyHits[companyMap[result]]++;
+                console.log('Positive Result');
                 console.log(result);
                 console.log(companyHits);
             }
@@ -118,6 +124,7 @@ let processArticleText = function (companyNames) {
     console.log('Results of search');
     console.log(companyHits);
     console.log(hitCount);
+    console.log(total_word_count);
 };
 
 let printResult = function(company, hitCount) {
