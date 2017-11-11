@@ -11,6 +11,7 @@ let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
 let articleText = '';
 let companyMap = {};
 let companyHits = {};
+let filler_words = ['a','an','and','but','or','the']
 // method to bootstrap the app
 let init = function () {
   if (use_company_trie){
@@ -104,47 +105,63 @@ let searchForOccurrence = function (companyNames) {
 
 let processArticleText = function (companyNames) {
     let result = '';
-    for (let i = 0; i < articleText.length; i++) {
-        // find occurrence in trie and increment counter
-        //console.log(companyNames[i] + "||");
-        if (articleText[i]==' '){
-          //TODO You should ignore the following words in the article
-          //(but not the company name) when considering relevance: a, an, the, and, or, but
-            total_word_count++;
-        }else{
-            result = textTrie.SearchString(articleText.substring(i));
-            if (result.length>0 && articleText[i+result.length] ==' '){
-                total_hit_count++;
-                companyHits[companyMap[result]]++;
-                i= i+result.length-1;
-            }
+    let nextWord ='', nextSpace = 0;
+    while(articleText.length>0){
+      // find occurrence in trie and increment counter
+      //console.log(companyNames[i] + "||");
+      nextSpace = articleText.trim().indexOf(' ');
+      nextWord = articleText.substring(0,nextSpace>0?nextSpace:articleText.length);
+      result = textTrie.SearchString(articleText);
+        if (result.length>0 && articleText[result.length] ==' '){
+            total_hit_count++;
+            companyHits[companyMap[result]]++;
+            nextWord = result;
         }
+        switch(nextWord) {
+        case 'a':
+        case 'an':
+        case 'and':
+        case 'but':
+        case 'or':
+        case 'the':
+          break;
+        default:
+          total_word_count++;
+          break;
+      }
+      articleText = articleText.substring(nextWord.length+1);
     }
     printResults();
 };
 
 let printResults = function(){
-  printResultHeader();
+  console.log(companyHits);
+  let longestCompany = Object.keys(companyHits).reduce(function (a, b) { return a.length > b.length ? a : b; }).length;
+  printResultHeader(longestCompany);
+
   for (company in companyHits){
-    printResult(company,companyHits[company]);
+    printResult(company,companyHits[company],longestCompany);
   }
-  printTotalCount();
+  printTotalCount(longestCompany);
 
 }
-let printResult = function(company, hitCount) {
+let printResult = function(company, hitCount, width = 15) {
     // TODO: for this company print hit count
     let relevance = hitCount / total_word_count;
-    console.log("\n" + company + "\t\t" + hitCount + "\t\t" + relevance.toFixed(4) + "%");
+    console.log("\n" + company.padEnd(width) + String(hitCount).padStart(9) + "\t" + relevance.toFixed(4).padStart(8) + "%");
 };
 
-let printResultHeader = function () {
-    console.log("\n\n" + "Company" + "\t\t\t" + "Hit Count" + "\t\t" + "Relevance");
+let printResultHeader = function (width = 15) {
+    console.log("\n\n" + "Company".padEnd(width) + "Hit Count" + "\t" + "Relevance");
+    console.log('---------------------------------------------');
+
 };
 
-let printTotalCount = function () {
+let printTotalCount = function (width = 15) {
     let total_relevance = total_hit_count / total_word_count;
-    console.log("\n" + "Total" + "\t\t" + total_hit_count + "\t\t" + total_relevance.toFixed(4) + "%");
-    console.log("Total Words" + "\t\t" + total_word_count);
+    console.log('---------------------------------------------');
+    console.log("\n" + "Total".padEnd(width) + String(total_hit_count).padStart(9)+ "\t"  + total_relevance.toFixed(4).padStart(8) + "%");
+    console.log("\t" + "Total Words    " + + total_word_count);
 };
 
 init();
