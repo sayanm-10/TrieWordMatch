@@ -1,11 +1,7 @@
 require('./trie.js');
-let fs = require("file-system");
-let reader = require("read-file");
 let readline_sync = require("readline-sync");
 let readline = require("linebyline");
-const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat";
 let textTrie = new Trie;
-let companyTrie = new Trie;
 let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
 let articleText, companyMap = {}, companyHits = {};
 
@@ -69,7 +65,7 @@ let getSearchText = function () {
         return input === "."; // exit criteria from std i/p
     });
 
-    if (articleText.length > 2) {
+    if (articleText.trim().length > 2) {
         // get rid of speacial characters while preserving single whitespace b/w words
         articleText = articleText.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
         processArticleText(articleText);
