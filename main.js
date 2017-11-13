@@ -6,21 +6,61 @@ let readline = require("linebyline");
 const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat";
 let textTrie = new Trie;
 let companyTrie = new Trie;
-let use_company_trie = true;
 let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
 let articleText = '';
 let companyMap = {};
 let companyHits = {};
+
+/*
+    PadEnd POLYFILL
+
+ https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
+*/
+if (!String.prototype.padEnd) {
+    String.prototype.padEnd = function padEnd(targetLength,padString) {
+        targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+        padString = String(padString || ' ');
+        if (this.length > targetLength) {
+            return String(this);
+        }
+        else {
+            targetLength = targetLength-this.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return String(this) + padString.slice(0,targetLength);
+        }
+    };
+}
+
+
+/*
+    PadStart POLYFILL
+
+    https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+*/
+if (!String.prototype.padStart) {
+    String.prototype.padStart = function padStart(targetLength,padString) {
+        targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+        padString = String(padString || ' ');
+        if (this.length > targetLength) {
+            return String(this);
+        }
+        else {
+            targetLength = targetLength-this.length;
+            if (targetLength > padString.length) {
+                padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+            }
+            return padString.slice(0,targetLength) + String(this);
+        }
+    };
+}
+
 // method to bootstrap the app
 let init = function () {
-  if (use_company_trie){
     getCompanyNames();
-    //getSearchText();
-  }else{
-    getSearchText();
-    getCompanyNames();
-  }
-
 };
 
 let getSearchText = function () {
@@ -37,64 +77,44 @@ let getSearchText = function () {
     finally {
         // get rid of speacial characters while preserving whitespace
         articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-        //console.log(articleText);
-        if (use_company_trie){
-           processArticleText(articleText); // TODO: process in trie
-        }else{
-           preprocessArticleText(articleText); // TODO: process in trie
-        }
+        processArticleText(articleText); // TODO: process in trie
     }
 };
 
 let getCompanyNames = function () {
     let companyFile = readline_sync.question("\nEnter company file path and name: ");
-
     let readStream = readline(companyFile).on("error", function () {
         console.log("\nFile " + companyFile + " not found! Reading from " + DEFAULT_COMPANY_FILE + "\n");
         readStream = readline(DEFAULT_COMPANY_FILE);
     });
-    if (use_company_trie){
-      readStream.on('line', function (line, lineCount, byteCount) {
-          let companyNames = line.split("\t");
-          let companySynonym = ''
-          companyHits[companyNames[0]]=0;
-          for (let i = 0; i<companyNames.length; i++){
+    
+    readStream.on('line', function (line, lineCount, byteCount) {
+        let companyNames = line.split("\t");
+        let companySynonym = ''
+        companyHits[companyNames[0]] = 0;
+        for (let i = 0; i < companyNames.length; i++) {
             // Trim and strip company names of special characters
-            companySynonym = companyNames[i].trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ')
-            companyMap[companySynonym]=companyNames[0];
+            companySynonym = companyNames[i].trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+            companyMap[companySynonym] = companyNames[0];
             textTrie.Add(companySynonym);
-          }
-      }).on('end', function() {
-        // console.log('Companies added to Trie:');
-        // console.log(textTrie.Print());
+        }
+    }).on('end', function() {
         getSearchText();
-      });
-    }else{
-      printResultHeader();
-      readStream.on('line', function (line, lineCount, byteCount) {
-          let companyNames = line.split("\t");
-          searchForOccurrence(companyNames); // TODO: walk the trie to find occurrences
-      });
-    }
-
-    //printTotalCount();
+    });
 };
 
 let preprocessArticleText = function (text) {
-    // TODO: create trie with words in this string
     let words = text.split(" ");
     total_word_count = words.length;
     for (let word of words) {
         textTrie.Add(word);
     }
-    //console.log(textTrie.Print());
 };
 
 let searchForOccurrence = function (companyNames) {
     let hitCount = 0;
     for (let i = 0; i < companyNames.length; i++) {
         // find occurrence in trie and increment counter
-        //console.log(companyNames[i] + "||");
         hitCount += textTrie.FindWord(companyNames[i]);
     }
 
@@ -107,7 +127,6 @@ let processArticleText = function (companyNames) {
     let nextWord ='', nextSpace = 0;
     while(articleText.length>0){
       // find occurrence in trie and increment counter
-      //console.log(companyNames[i] + "||");
       nextSpace = articleText.trim().indexOf(' ');
       nextWord = articleText.substring(0,nextSpace>0?nextSpace:articleText.length);
       result = textTrie.SearchString(articleText);
@@ -156,14 +175,14 @@ let printResult = function(company, hitCount, col1Width = 15,col2Width = 10) {
         relevance.toFixed(4).padStart(10) + "%");
 };
 
-let printResultHeader = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
+let printResultHeader = function (col1Width = 15, col2Width = 10, totalWidth = 35) {
     console.log("\n\n" + "Company".padEnd(col1Width) +
         "Hit Count".padStart(col2Width)  + "  Relevance");
     console.log('-'.repeat(totalWidth));
 
 };
 
-let printTotalCount = function (col1Width = 15,col2Width = 10, totalWidth = 35) {
+let printTotalCount = function (col1Width = 15, col2Width = 10, totalWidth = 35) {
     let total_relevance = total_hit_count / total_word_count;
     console.log('-'.repeat(totalWidth));
     console.log("Total".padEnd(col1Width) +
