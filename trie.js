@@ -40,29 +40,15 @@ class Trie {
 		};
 	};
 
-	FindWord (word) {
-			let node = this.root;
-			while (word.length > 1) {
-				if (!node.keys.has(word[0])) {
-					return false;
-				} else {
-					node = node.keys.get(word[0]);
-					word = word.substr(1);
-				};
-			};
-					// if the last node matches and it is the end of the trie
-	    return (node.keys.has(word) && node.keys.get(word).isEnd()) ? node.keys.get(word).occurrence : 0;
-	};
-
-	SearchString(string){
+	SearchString(string) {
 		let node = this.root;
-    let match_string = '';
-    let match_found = false;
+		let match_string = '';
+		let match_found = false;
 		while (node.keys.has(string[0])) {
-      match_string = match_string + string[0];
-			if (node.keys.get(string[0]).isEnd()){
+			match_string = match_string + string[0];
+			if (node.keys.get(string[0]).isEnd()) {
 				string = string.substr(1);
-        match_found = true;
+				match_found = true;
 				break;
 			} else {
 				node = node.keys.get(string[0]);

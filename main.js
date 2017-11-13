@@ -7,9 +7,7 @@ const DEFAULT_ARTICLE_FILE = "article.dat", DEFAULT_COMPANY_FILE = "company.dat"
 let textTrie = new Trie;
 let companyTrie = new Trie;
 let total_hit_count = 0, total_relevance = 0, total_word_count = 0;
-let articleText = '';
-let companyMap = {};
-let companyHits = {};
+let articleText, companyMap = {}, companyHits = {};
 
 /*
     PadEnd POLYFILL
@@ -64,20 +62,19 @@ let init = function () {
 };
 
 let getSearchText = function () {
-    let newsArticleFile = readline_sync.question("\nEnter news article file path and name: ");
-    let readStream;
-    // TODO: Add functionality to read from standard input
-    try {
-        readStream = reader.sync(newsArticleFile, "utf-8");
-    }
-    catch (error) {
-        console.log("\nFile " + newsArticleFile + " not found! Reading from " + DEFAULT_ARTICLE_FILE + "\n");
-        readStream = reader.sync(DEFAULT_ARTICLE_FILE, "utf-8");
-    }
-    finally {
-        // get rid of speacial characters while preserving whitespace
-        articleText = readStream.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
-        processArticleText(articleText); // TODO: process in trie
+    articleText = '';
+    console.log("\nEnter news article:");
+    readline_sync.promptLoop(function (input) {
+        articleText = articleText + " " + input;
+        return input === "."; // exit criteria from std i/p
+    });
+
+    if (articleText.length > 2) {
+        // get rid of speacial characters while preserving single whitespace b/w words
+        articleText = articleText.trim().replace(/(?!\w|\s)./g, '').replace(/\s+/g, ' ');
+        processArticleText(articleText);
+    } else {
+        getSearchText(); // keep assking for more input text
     }
 };
 
@@ -102,25 +99,6 @@ let getCompanyNames = function () {
     }).on('end', function() {
         getSearchText();
     });
-};
-
-let preprocessArticleText = function (text) {
-    let words = text.split(" ");
-    total_word_count = words.length;
-    for (let word of words) {
-        textTrie.Add(word);
-    }
-};
-
-let searchForOccurrence = function (companyNames) {
-    let hitCount = 0;
-    for (let i = 0; i < companyNames.length; i++) {
-        // find occurrence in trie and increment counter
-        hitCount += textTrie.FindWord(companyNames[i]);
-    }
-
-    total_hit_count += hitCount;
-    printResult(companyNames[0], hitCount);
 };
 
 let processArticleText = function (companyNames) {
